@@ -9,21 +9,28 @@
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         Left="{Binding Source={x:Static lol:Settings.Default}, Path=MainWindowLeft, Mode=TwoWay}"
         Top="{Binding Source={x:Static lol:Settings.Default}, Path=MainWindowTop, Mode=TwoWay}"
-        Width="{Binding Source={x:Static lol:Settings.Default}, Path=MainWindowWidth, Mode=TwoWay}"
-        Height="{Binding Source={x:Static lol:Settings.Default}, Path=MainWindowHeight, Mode=TwoWay}"
-        Title="MainWindow" 
+        Width="583"
+        Height="525"
+        Icon="Properties\WpfLogCat.ico"
+        Title="WPF LogCat" 
         >
     <Window.Resources>
         <converter:WpfSucksWidthConverter x:Key="WpfSucksWidthConverter" />
     </Window.Resources>
-    <Grid >
+    <Window.CommandBindings>
+        <CommandBinding Command="Copy" Executed="CommandCopy_Executed" />
+    </Window.CommandBindings>
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
             <RowDefinition Height="1*"/>
+            <RowDefinition Height="20"/>
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Orientation="Horizontal">
-            <CheckBox Content="Enable" Checked="CheckBoxEnable_Checked" HorizontalAlignment="Left" Margin="5,5,5,5" VerticalAlignment="Top"/>
-            <ComboBox ItemsSource="{Binding MainData.TagFilters}" >
+        <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" >
+            <CheckBox Content="Enable" Checked="CheckBoxEnable_Checked" Unchecked="CheckBoxEnable_Unchecked" VerticalAlignment="Center" Margin="5,0,5,0"/>
+            <Label Content="Tags:" Margin="5,0,0,0" VerticalAlignment="Center"  />
+
+            <ComboBox ItemsSource="{Binding MainData.TagFilters}" Width="120" >
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -33,27 +40,26 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-            <Label>Search</Label>
-            <TextBox TextChanged="TextBox_SearchTextChanged" Width="100" Text="{Binding MainData.SearchFilter}" />
+            <Label Content="Search:" Margin="5,0,0,0"/>
+            <TextBox TextChanged="TextBox_SearchTextChanged" Width="150" Text="{Binding MainData.SearchFilter}" VerticalContentAlignment="Center" />
+            <CheckBox Content="Auto-Scroll" IsChecked="{Binding MainData.AutoScroll}" VerticalAlignment="Center" Margin="5,0,5,0"/>
         </StackPanel>
-
 
         <Grid Grid.Row="1"  >
             <Grid.RowDefinitions>
                 <RowDefinition Height="1*"/>
             </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*" />
+            </Grid.ColumnDefinitions>
 
-            <ListView x:Name="listBox1" 
-                  ItemsSource="{Binding MainData.LogItems}"
+            <ListView x:Name="ListLogEntries" ItemsSource="{Binding MainData.LogItems}"
                   AlternationCount="2"
-                  VerticalAlignment="Top" HorizontalAlignment="Left" Grid.RowSpan="3" 
-                  >
+                  VerticalAlignment="Top" >
                 <ListView.ContextMenu>
                     <ContextMenu>
-                        <MenuItem Header="Copy (Ctrl+C)" Click="MenuItem_Click" Tag="copy" />
-                        <MenuItem Header="Stack Google (Ctrl+G)" Click="MenuItem_Click" Tag="google"  />
-                        <MenuItem Header="Stack Overflow (Ctrl+T)" Click="MenuItem_Click" Tag="stack"  />
-                        <MenuItem Header="Save (Ctrl+S)" Click="MenuItem_Click" Tag="save"  />
+                        <MenuItem Header="Copy (Ctrl+C)" Command="Copy" />
+                        <MenuItem Header="Save (Ctrl+S)" Command="Copy" />
                     </ContextMenu>
                 </ListView.ContextMenu>
 
@@ -108,5 +114,34 @@
                 </ListView.ItemContainerStyle>
             </ListView>
         </Grid>
+        <DockPanel Grid.Row="2">
+            <StatusBar DockPanel.Dock="Bottom">
+                <StatusBar.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="100" />
+                            </Grid.ColumnDefinitions>
+                        </Grid>
+                    </ItemsPanelTemplate>
+                </StatusBar.ItemsPanel>
+                <StatusBarItem Grid.Column="0">
+                    <TextBlock Name="lblCursorPosition" />
+                </StatusBarItem>
+                <Separator Grid.Column="1" />
+                <StatusBarItem Grid.Column="2">
+                    <ProgressBar Value="50" Width="90" Height="16" Visibility="Hidden" />
+                </StatusBarItem>
+                <Separator Grid.Column="3" />
+                <StatusBarItem Grid.Column="4">
+                    <TextBlock Text="{Binding MainData.Stats}" />
+                </StatusBarItem>
+            </StatusBar>
+        </DockPanel>
+
     </Grid>
 </Window>

@@ -4,13 +4,22 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Properties\WpfLogCat.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Properties\WpfLogCat.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="PropertyChangedAnalyzers" Version="3.2.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Properties\WpfLogCat.ico" />
   </ItemGroup>
 
   <ItemGroup>

@@ -10,6 +10,7 @@ namespace WpfLogcat
         public Process Process { get; set; }
         public event EventHandler<LogEventArgs> OnLogReceived;
 
+        /// <summary>TODO: hard coded path, sorry</summary>
         public void Start()
         {
             try

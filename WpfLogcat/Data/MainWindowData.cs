@@ -11,6 +11,8 @@ namespace WpfLogcat.Data
         private ObservableCollection<LogEntry> logItems = new ObservableCollection<LogEntry>();
         private ObservableCollection<TagFilter> tagFilters = new ObservableCollection<TagFilter>() { { new TagFilter { Tag = SpeialAllFlag, IsChecked = true } } };
         private string searchFilter;
+        private bool autoScroll = false;
+        private string stats;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -62,6 +64,36 @@ namespace WpfLogcat.Data
                 }
 
                 this.searchFilter = value;
+                this.OnPropertyChanged();
+            }
+        }
+
+        public bool AutoScroll
+        {
+            get => this.autoScroll;
+            set
+            {
+                if (value == this.autoScroll)
+                {
+                    return;
+                }
+
+                this.autoScroll = value;
+                this.OnPropertyChanged();
+            }
+        }
+
+        public string Stats
+        {
+            get => this.stats;
+            set
+            {
+                if (value == this.stats)
+                {
+                    return;
+                }
+
+                this.stats = value;
                 this.OnPropertyChanged();
             }
         }
