@@ -1,6 +1,6 @@
 # WpfLogcat
 Also just what the world needed
-![](WpfLogcat/WpfLogcat/Images/WpfLogCat-screenshot1.png)
+![Screenshot](WpfLogcat/Images/WpfLogCat-screenshot1.png)
 
 
 # Developer
