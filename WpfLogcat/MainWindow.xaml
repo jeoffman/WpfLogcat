@@ -9,8 +9,8 @@
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         Left="{Binding Source={x:Static lol:Settings.Default}, Path=MainWindowLeft, Mode=TwoWay}"
         Top="{Binding Source={x:Static lol:Settings.Default}, Path=MainWindowTop, Mode=TwoWay}"
-        Width="583"
-        Height="525"
+        Width="{Binding Source={x:Static lol:Settings.Default}, Path=MainWindowWidth, Mode=TwoWay}"
+        Height="{Binding Source={x:Static lol:Settings.Default}, Path=MainWindowHeight, Mode=TwoWay}"
         Icon="Properties\WpfLogCat.ico"
         Title="WPF LogCat" 
         >

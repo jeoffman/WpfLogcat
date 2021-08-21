@@ -1,6 +1,9 @@
-﻿using System;
+﻿#define BATCHY
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Timers;
 using WpfLogcat.Data;
 
 namespace WpfLogcat
@@ -10,11 +13,20 @@ namespace WpfLogcat
         public Process Process { get; set; }
         public event EventHandler<LogEventArgs> OnLogReceived;
 
+        Timer _timer;
+        readonly List<LogEntry> _backlog = new List<LogEntry>();
+
         /// <summary>TODO: hard coded path, sorry</summary>
         public void Start()
         {
             try
             {
+#if BATCHY  //this doesn't help as much as I hoped that it would...
+                _timer = new Timer(100);
+                _timer.Elapsed += Timer_Elapsed;
+                _timer.Start();
+#endif
+
                 Process = new Process();
                 Process.StartInfo.FileName = @"C:\Program Files (x86)\Android\android-sdk\platform-tools\adb.exe";
                 Process.StartInfo.CreateNoWindow = true;
@@ -34,9 +46,27 @@ namespace WpfLogcat
             }
         }
 
+        private void Timer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            List<LogEntry> copy;
+            lock (_backlog)
+            {
+                copy = new List<LogEntry>(_backlog);
+                _backlog.Clear();
+            }
+            OnLogReceived?.Invoke(this, new LogEventArgs { LogEntries = copy });
+        }
+
+
         internal void Kill()
         {
-            Process.Kill();
+            if (_timer != null)
+            {
+                _timer.Stop();
+                _timer.Elapsed -= Timer_Elapsed;
+                _timer?.Dispose();
+            }
+            Process?.Kill();
         }
 
         private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
@@ -44,10 +74,14 @@ namespace WpfLogcat
             var log = ParseLog(e.Data);
             if (log != null)
             {
-                OnLogReceived?.Invoke(this, new LogEventArgs
+#if BATCHY
+                lock (_backlog)
                 {
-                    LogEntry = log,
-                });
+                    _backlog.Add(log);
+                }
+#else
+                OnLogReceived?.Invoke(this, new LogEventArgs { LogEntries = new List<LogEntry> { log } });
+#endif
             }
         }
 
@@ -132,6 +166,6 @@ namespace WpfLogcat
 
     public class LogEventArgs : EventArgs
     {
-        public LogEntry LogEntry { get; set; }
+        public List<LogEntry> LogEntries { get; set; }
     }
 }

@@ -71,21 +71,25 @@ namespace WpfLogcat
                 {
                     try
                     {
-                        if (!string.IsNullOrEmpty(e.LogEntry.Tag) && !MainData.TagFilters.Any(x => x.Tag.Equals(e.LogEntry.Tag, StringComparison.InvariantCultureIgnoreCase)))
+                        LogEntry lastGuy = null;
+                        foreach (LogEntry logEntry in e.LogEntries)
                         {
-                            MainData.TagFilters.Add(new TagFilter { Tag = e.LogEntry.Tag, IsChecked = true });
-                            MainData.TagFilters = new ObservableCollection<TagFilter>(MainData.TagFilters.OrderBy(x => x.Tag));
-                        }
-                        
-                        MainData.pendingLogs.Add(e.LogEntry);
-                        
-                        if (!IsFiltered(e.LogEntry))
-                        {
-                            MainData.LogItems.Add(e.LogEntry);
-                            if(MainData.AutoScroll)
-                                ListLogEntries.ScrollIntoView(e.LogEntry);
-                        }
+                            if (!string.IsNullOrEmpty(logEntry.Tag) && !MainData.TagFilters.Any(x => x.Tag.Equals(logEntry.Tag, StringComparison.InvariantCultureIgnoreCase)))
+                            {
+                                MainData.TagFilters.Add(new TagFilter { Tag = logEntry.Tag, IsChecked = true });
+                                MainData.TagFilters = new ObservableCollection<TagFilter>(MainData.TagFilters.OrderBy(x => x.Tag));
+                            }
 
+                            MainData.pendingLogs.Add(logEntry);
+
+                            if (!IsFiltered(logEntry))
+                            {
+                                MainData.LogItems.Add(logEntry);
+                                lastGuy = logEntry;
+                            }
+                        }
+                        if (MainData.AutoScroll && lastGuy!= null)
+                            ListLogEntries.ScrollIntoView(lastGuy);
                         SetStats();
                     }
                     catch (Exception exc)
