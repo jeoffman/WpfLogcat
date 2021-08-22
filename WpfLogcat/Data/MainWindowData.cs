@@ -2,17 +2,20 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using WpfLogcat.Adb;
 
 namespace WpfLogcat.Data
 {
     public class MainWindowData : INotifyPropertyChanged
     {
-        public const string SpeialAllFlag = "<All>";
+        public const string SpecialAllFlag = "<All>";
         private ObservableCollection<LogEntry> logItems = new ObservableCollection<LogEntry>();
-        private ObservableCollection<TagFilter> tagFilters = new ObservableCollection<TagFilter>() { { new TagFilter { Tag = SpeialAllFlag, IsChecked = true } } };
+        private ObservableCollection<TagFilter> tagFilters = new ObservableCollection<TagFilter>() { { new TagFilter { Tag = SpecialAllFlag, IsChecked = true } } };
         private string searchFilter;
         private bool autoScroll = false;
         private string stats;
+        private ObservableCollection<AdbDevice> deviceList = new ObservableCollection<AdbDevice>();
+        private AdbDevice selectedDevice;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -94,6 +97,36 @@ namespace WpfLogcat.Data
                 }
 
                 this.stats = value;
+                this.OnPropertyChanged();
+            }
+        }
+
+        public ObservableCollection<AdbDevice> DeviceList
+        {
+            get => this.deviceList;
+            set
+            {
+                if (ReferenceEquals(value, this.deviceList))
+                {
+                    return;
+                }
+
+                this.deviceList = value;
+                this.OnPropertyChanged();
+            }
+        }
+
+        public AdbDevice SelectedDevice
+        {
+            get => this.selectedDevice;
+            set
+            {
+                if (ReferenceEquals(value, this.selectedDevice))
+                {
+                    return;
+                }
+
+                this.selectedDevice = value;
                 this.OnPropertyChanged();
             }
         }

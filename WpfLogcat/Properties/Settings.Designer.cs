@@ -37,7 +37,7 @@ namespace WpfLogcat.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("500")]
+        [global::System.Configuration.DefaultSettingValueAttribute("750")]
         public int MainWindowWidth {
             get {
                 return ((int)(this["MainWindowWidth"]));
@@ -140,6 +140,18 @@ namespace WpfLogcat.Properties {
             }
             set {
                 this["MainWindowColumnTextWidth"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastDeviceId {
+            get {
+                return ((string)(this["LastDeviceId"]));
+            }
+            set {
+                this["LastDeviceId"] = value;
             }
         }
     }

@@ -9,8 +9,10 @@ Here's hoping that MAUI won't suck as hard
 
 # TODO:
 * Fix Application.Current.Dispatcher spamming during initial logcat load
-* Support multiple device selection from ADB
 * support different ADB path
 * "Clear" for search text
-* "Clear" for log
 * "Clear" for device's log
+* support "install"
+* support "push"
+* support some kind of device history (i.e. fast re-connect)
+* support some kind of "scripting"

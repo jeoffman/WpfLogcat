@@ -6,18 +6,18 @@ using System.Globalization;
 using System.Timers;
 using WpfLogcat.Data;
 
-namespace WpfLogcat
+namespace WpfLogcat.Adb
 {
     public class LogCat //Meow
     {
-        public Process Process { get; set; }
         public event EventHandler<LogEventArgs> OnLogReceived;
 
+        Process Process { get; set; }
         Timer _timer;
         readonly List<LogEntry> _backlog = new List<LogEntry>();
 
         /// <summary>TODO: hard coded path, sorry</summary>
-        public void Start()
+        public void Start(string deviceId)
         {
             try
             {
@@ -27,10 +27,13 @@ namespace WpfLogcat
                 _timer.Start();
 #endif
 
+                var agruments = "logcat -v threadtime";
+                if (!string.IsNullOrEmpty(deviceId))
+                    agruments = $"-s {deviceId} logcat -v threadtime";
                 Process = new Process();
                 Process.StartInfo.FileName = @"C:\Program Files (x86)\Android\android-sdk\platform-tools\adb.exe";
                 Process.StartInfo.CreateNoWindow = true;
-                Process.StartInfo.Arguments = "logcat -v threadtime";
+                Process.StartInfo.Arguments = agruments;
                 Process.StartInfo.RedirectStandardInput = true;
                 Process.StartInfo.RedirectStandardOutput = true;
                 Process.StartInfo.RedirectStandardError = true;
@@ -120,17 +123,24 @@ namespace WpfLogcat
                                 {
                                     retval.Level = rawString[31];   //eg: D
 
-                                    var theRemainder = rawString.Substring(33);
-                                    int indexOfText = theRemainder.IndexOf(' ');
-                                    if (indexOfText >= 0)
+                                    if (rawString.Length > 33)
                                     {
-                                        retval.Tag = theRemainder.Substring(0, indexOfText); //eg: KeyguardClockSwitch:
-                                        if (theRemainder.Length > indexOfText + 1)
-                                            retval.Text = theRemainder.Substring(indexOfText + 1).TrimStart(); //eg: Updating clock: 4î¸29
+                                        var theRemainder = rawString.Substring(33);
+                                        int indexOfText = theRemainder.IndexOf(' ');
+                                        if (indexOfText >= 0)
+                                        {
+                                            retval.Tag = theRemainder.Substring(0, indexOfText); //eg: KeyguardClockSwitch:
+                                            if (theRemainder.Length > indexOfText + 1)
+                                                retval.Text = theRemainder.Substring(indexOfText + 1).TrimStart(); //eg: Updating clock: 4î¸29
+                                        }
+                                        else
+                                        {
+                                            retval.Text = theRemainder;
+                                            Debug.WriteLine("Missing Tag");
+                                        }
                                     }
                                     else
                                     {
-                                        retval.Text = theRemainder;
                                         Debug.WriteLine("Missing App");
                                     }
                                 }
@@ -158,14 +168,9 @@ namespace WpfLogcat
                 {
                     retval.Text = rawString;
                 }
-                Debug.WriteLine(rawString);
+//Debug.WriteLine(rawString);
             }
             return retval;
         }
-    }
-
-    public class LogEventArgs : EventArgs
-    {
-        public List<LogEntry> LogEntries { get; set; }
     }
 }

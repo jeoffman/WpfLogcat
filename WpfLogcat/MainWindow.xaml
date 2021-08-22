@@ -27,9 +27,24 @@
             <RowDefinition Height="20"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" >
+            <Label Content="Devices:" Margin="5,0,5,0" VerticalAlignment="Center"  />
+            <ComboBox ItemsSource="{Binding MainData.DeviceList}" SelectedItem="{Binding MainData.SelectedDevice}" DisplayMemberPath="DeviceName" Width="150" >
+                <ComboBox.ItemContainerStyle>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter
+                    Property="IsEnabled"
+                    Value="{Binding Enabled}" />
+                    </Style>
+                </ComboBox.ItemContainerStyle>
+            </ComboBox>
             <CheckBox Content="Enable" Checked="CheckBoxEnable_Checked" Unchecked="CheckBoxEnable_Unchecked" VerticalAlignment="Center" Margin="5,0,5,0"/>
-            <Label Content="Tags:" Margin="5,0,0,0" VerticalAlignment="Center"  />
 
+            <Separator />
+            <Button Content="Clear (GUI)" Click="ButtonClearGui_Click"/>
+            <Separator />
+
+
+            <Label Content="Tags:" Margin="5,0,0,0" VerticalAlignment="Center"  />
             <ComboBox ItemsSource="{Binding MainData.TagFilters}" Width="120" >
                 <ComboBox.ItemTemplate>
                     <DataTemplate>

@@ -3,9 +3,11 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using WpfLogcat.Adb;
 using WpfLogcat.Data;
 
 namespace WpfLogcat
@@ -17,6 +19,8 @@ namespace WpfLogcat
         LogCat _logCat;  //meow
 
         bool _hackFilterRecursion = false;
+        Timer _pollForDevicesTimer = new Timer(5000);
+
 
         public MainWindow()
         {
@@ -24,11 +28,60 @@ namespace WpfLogcat
             DataContext = MainData;
 
             InitializeComponent();
+
+            _pollForDevicesTimer.AutoReset = false;
+            _pollForDevicesTimer.Elapsed += PollForDevices_Elapsed;
+            PollForDevices_Elapsed(null, null);
+        }
+
+        private void PollForDevices_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            var devices = AdbDevices.GetDevicesDetailed();
+            Dispatcher.BeginInvoke((Action) (() =>
+            {
+                //merge the adb results with our combobox and select the "saved" device if its in the list
+                foreach (var dev in devices)
+                {
+                    if (!MainData.DeviceList.Any(x => x.DeviceId == dev.DeviceId))
+                    {
+                        var x = AdbDevices.GetEmulatorName(dev.DeviceId);
+                        if(!string.IsNullOrEmpty(x))
+                            dev.DeviceName = x;
+                        else
+                            dev.DeviceName = dev.Model;
+                        dev.Enabled = true;
+                        MainData.DeviceList.Add(dev);
+                    }
+                    else
+                    {
+                        var existing = MainData.DeviceList.Single(x => x.DeviceId == dev.DeviceId);
+                        //update it or something?
+                    }
+                }
+
+                foreach (var dev in MainData.DeviceList)
+                {
+                    if (!devices.Any(x => x.DeviceId == dev.DeviceId))
+                        dev.Enabled = false;
+                }
+
+                if (MainData.SelectedDevice == null && !string.IsNullOrEmpty(Properties.Settings.Default.LastDeviceId))
+                {
+                    var savedDevice = MainData.DeviceList.FirstOrDefault(x => x.DeviceId == Properties.Settings.Default.LastDeviceId);
+                    if (savedDevice != null)
+                        MainData.SelectedDevice = savedDevice;
+                }
+                _pollForDevicesTimer.Start();
+            }));
         }
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
             CloseLogcat();
+            
+            if(MainData.SelectedDevice != null)
+                Properties.Settings.Default.LastDeviceId = MainData.SelectedDevice.DeviceId;
+
             Properties.Settings.Default.Save();
             base.OnClosing(e);
         }
@@ -45,7 +98,7 @@ namespace WpfLogcat
 
             _logCat = new LogCat();
             _logCat.OnLogReceived += LogCat_OnLogReceived;
-            _logCat.Start();
+            _logCat.Start(MainData.SelectedDevice.DeviceId);
         }
 
         private void CheckBoxEnable_Unchecked(object sender, RoutedEventArgs e)
@@ -112,7 +165,7 @@ namespace WpfLogcat
                 _hackFilterRecursion = true;
                 CheckBox qq = (CheckBox)e.Source;
                 TextBlock textBlock = (TextBlock)((System.Windows.Controls.Panel)qq.Parent).Children[1];
-                if (textBlock.Text == MainWindowData.SpeialAllFlag)
+                if (textBlock.Text == MainWindowData.SpecialAllFlag)
                 {
                     foreach (var filter in MainData.TagFilters)
                         filter.IsChecked = qq.IsChecked.Value;  // this will cause recursion, so use HackSettingFiltersBlock
@@ -124,9 +177,15 @@ namespace WpfLogcat
 
         private void FilterLogs()
         {
-            var filtered = MainData.pendingLogs.Where(x => !IsFiltered(x));
-            MainData.LogItems = new ObservableCollection<LogEntry>(filtered);
-            SetStats();
+            try
+            {
+                var filtered = MainData.pendingLogs.Where(x => !IsFiltered(x));
+                MainData.LogItems = new ObservableCollection<LogEntry>(filtered);
+                SetStats();
+            }
+            catch (Exception exc)
+            {   //fall down go boom now what?
+            }
         }
 
         private bool IsFiltered(LogEntry logEntry)
@@ -142,7 +201,7 @@ namespace WpfLogcat
             if (retval)
             {
                 retval = string.IsNullOrEmpty(MainData.SearchFilter) ||
-                    logEntry.Text.Contains(MainData.SearchFilter, StringComparison.CurrentCultureIgnoreCase) ||
+                    logEntry.Text != null && logEntry.Text.Contains(MainData.SearchFilter, StringComparison.CurrentCultureIgnoreCase) ||
                     logEntry.Tag != null && logEntry.Tag.Contains(MainData.SearchFilter, StringComparison.CurrentCultureIgnoreCase);
             }
             return !retval;
@@ -162,6 +221,11 @@ namespace WpfLogcat
             foreach (LogEntry logEntry in selected)
                 stringBuilder.AppendLine(logEntry.ToString());
             Clipboard.SetText(stringBuilder.ToString());
+        }
+
+        private void ButtonClearGui_Click(object sender, RoutedEventArgs e)
+        {
+            MainData.LogItems.Clear();
         }
     }
 }
